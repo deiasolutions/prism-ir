@@ -1,0 +1,1094 @@
+# PRISM-IR Validation Test Suite
+# Version: 1.0.0
+# These tests define what a conforming PRISM-IR validator must accept and reject.
+# Format: each test has an id, description, category, expectation (valid|invalid),
+# an optional error code for invalid cases, and a flow block.
+
+---
+
+tests:
+
+  # ============================================================
+  # CATEGORY: Minimal Valid Flows
+  # ============================================================
+
+  - id: T-001
+    description: Minimal valid flow -- start and end only
+    category: minimal
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "minimal_flow"
+      name: "Minimal Flow"
+      intention: "Do the thing"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-002
+    description: Single task between start and end
+    category: minimal
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "single_task"
+      name: "Single Task Flow"
+      intention: "Process one item"
+      nodes:
+        - id: start
+          t: start
+        - id: do_work
+          t: task
+          o: { op: human }
+        - id: end
+          t: end
+      edges:
+        - { s: start,   t: do_work }
+        - { s: do_work, t: end }
+
+  - id: T-003
+    description: LLM operator with oracle tier
+    category: minimal
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "llm_task"
+      name: "LLM Task"
+      intention: "Analyze document"
+      nodes:
+        - id: start
+          t: start
+        - id: analyze
+          t: task
+          o: { op: llm, tier: 2 }
+        - id: end
+          t: end
+      edges:
+        - { s: start,   t: analyze }
+        - { s: analyze, t: end }
+
+  # ============================================================
+  # CATEGORY: Required Fields
+  # ============================================================
+
+  - id: T-010
+    description: Missing v field
+    category: required_fields
+    expect: invalid
+    error: MISSING_VERSION
+    flow: |
+      id: "no_version"
+      name: "No Version"
+      intention: "Do something"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-011
+    description: Missing id field
+    category: required_fields
+    expect: invalid
+    error: MISSING_ID
+    flow: |
+      v: "1.0"
+      name: "No ID"
+      intention: "Do something"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-012
+    description: Missing intention field
+    category: required_fields
+    expect: invalid
+    error: MISSING_INTENTION
+    flow: |
+      v: "1.0"
+      id: "no_intention"
+      name: "No Intention"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-013
+    description: Missing name field
+    category: required_fields
+    expect: invalid
+    error: MISSING_NAME
+    flow: |
+      v: "1.0"
+      id: "no_name"
+      intention: "Do something"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-014
+    description: No start node
+    category: required_fields
+    expect: invalid
+    error: MISSING_START_NODE
+    flow: |
+      v: "1.0"
+      id: "no_start"
+      name: "No Start"
+      intention: "Do something"
+      nodes:
+        - id: do_work
+          t: task
+          o: { op: human }
+        - id: end
+          t: end
+      edges:
+        - { s: do_work, t: end }
+
+  - id: T-015
+    description: No end node
+    category: required_fields
+    expect: invalid
+    error: MISSING_END_NODE
+    flow: |
+      v: "1.0"
+      id: "no_end"
+      name: "No End"
+      intention: "Do something"
+      nodes:
+        - id: start
+          t: start
+        - id: do_work
+          t: task
+          o: { op: human }
+      edges:
+        - { s: start, t: do_work }
+
+  - id: T-016
+    description: Multiple start nodes
+    category: required_fields
+    expect: invalid
+    error: MULTIPLE_START_NODES
+    flow: |
+      v: "1.0"
+      id: "two_starts"
+      name: "Two Starts"
+      intention: "Do something"
+      nodes:
+        - id: start_a
+          t: start
+        - id: start_b
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start_a, t: end }
+        - { s: start_b, t: end }
+
+  # ============================================================
+  # CATEGORY: Node Types
+  # ============================================================
+
+  - id: T-020
+    description: All valid node types present
+    category: node_types
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "all_node_types"
+      name: "All Node Types"
+      intention: "Exercise all node types"
+      events:
+        - id: evt_signal
+          type: transient
+          payload:
+            - { name: value, dtype: string }
+      nodes:
+        - id: start
+          t: start
+        - id: work
+          t: task
+          o: { op: llm, tier: 1 }
+        - id: branch
+          t: decision
+          mode: exclusive
+        - id: split
+          t: fork
+        - id: merge
+          t: join
+          joinPolicy:
+            mode: all
+        - id: approval
+          t: vote
+          mode: majority
+          verdict_expr: "result.outcome == 'yes'"
+          tie_breaker:
+            policy: escalate
+            operator: { op: human, tier: 4 }
+        - id: gate
+          t: checkpoint
+          phase_gate:
+            evaluate: "metrics.sla_compliance > 0.9"
+            if_true:
+              trigger_boundary: "next_phase"
+            if_false:
+              continue: normal
+        - id: wait
+          t: event_wait
+          trigger:
+            event: evt_signal
+            timeout: "1h"
+            onTimeout: escalate
+        - id: abort
+          t: cancel
+          scope: flow
+          condition: "entity.status == 'fraud'"
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: work }
+        - { s: work,  t: end }
+
+  - id: T-021
+    description: Invalid node type
+    category: node_types
+    expect: invalid
+    error: INVALID_NODE_TYPE
+    flow: |
+      v: "1.0"
+      id: "bad_node_type"
+      name: "Bad Node Type"
+      intention: "Test invalid type"
+      nodes:
+        - id: start
+          t: start
+        - id: bad
+          t: wizard
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: bad }
+        - { s: bad,   t: end }
+
+  # ============================================================
+  # CATEGORY: Operators
+  # ============================================================
+
+  - id: T-030
+    description: All valid operator types
+    category: operators
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "all_operators"
+      name: "All Operators"
+      intention: "Test all operator types"
+      nodes:
+        - id: start
+          t: start
+        - id: by_llm
+          t: task
+          o: { op: llm, tier: 2 }
+        - id: by_human
+          t: task
+          o: { op: human }
+        - id: by_api
+          t: task
+          o: { op: api }
+        - id: by_script
+          t: task
+          o: { op: script }
+        - id: by_auto
+          t: task
+          o: { op: auto }
+        - id: end
+          t: end
+      edges:
+        - { s: start,     t: by_llm }
+        - { s: by_llm,    t: by_human }
+        - { s: by_human,  t: by_api }
+        - { s: by_api,    t: by_script }
+        - { s: by_script, t: by_auto }
+        - { s: by_auto,   t: end }
+
+  - id: T-031
+    description: Invalid operator type
+    category: operators
+    expect: invalid
+    error: INVALID_OPERATOR_TYPE
+    flow: |
+      v: "1.0"
+      id: "bad_operator"
+      name: "Bad Operator"
+      intention: "Test invalid operator"
+      nodes:
+        - id: start
+          t: start
+        - id: work
+          t: task
+          o: { op: wizard }
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: work }
+        - { s: work,  t: end }
+
+  - id: T-032
+    description: LLM tier out of range
+    category: operators
+    expect: invalid
+    error: INVALID_TIER
+    flow: |
+      v: "1.0"
+      id: "bad_tier"
+      name: "Bad Tier"
+      intention: "Test invalid tier"
+      nodes:
+        - id: start
+          t: start
+        - id: work
+          t: task
+          o: { op: llm, tier: 9 }
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: work }
+        - { s: work,  t: end }
+
+  # ============================================================
+  # CATEGORY: Events
+  # ============================================================
+
+  - id: T-040
+    description: Emitting a declared event is valid
+    category: events
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "declared_event"
+      name: "Declared Event"
+      intention: "Test event declaration"
+      events:
+        - id: evt_done
+          type: transient
+          payload:
+            - { name: item_id, dtype: string }
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+          a:
+            - type: emit
+              event: evt_done
+              payload:
+                item_id: "${entity.id}"
+      edges:
+        - { s: start, t: end }
+
+  - id: T-041
+    description: Emitting an undeclared event is invalid
+    category: events
+    expect: invalid
+    error: UNDECLARED_EVENT
+    flow: |
+      v: "1.0"
+      id: "undeclared_event"
+      name: "Undeclared Event"
+      intention: "Test undeclared event"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+          a:
+            - type: emit
+              event: evt_ghost
+      edges:
+        - { s: start, t: end }
+
+  - id: T-042
+    description: Waiting on an undeclared event is invalid
+    category: events
+    expect: invalid
+    error: UNDECLARED_EVENT
+    flow: |
+      v: "1.0"
+      id: "wait_undeclared"
+      name: "Wait Undeclared"
+      intention: "Test waiting on undeclared event"
+      nodes:
+        - id: start
+          t: start
+        - id: wait
+          t: event_wait
+          trigger:
+            event: evt_ghost
+            timeout: "1h"
+            onTimeout: escalate
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: wait }
+        - { s: wait,  t: end }
+
+  - id: T-043
+    description: Persistent event type is valid
+    category: events
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "persistent_event"
+      name: "Persistent Event"
+      intention: "Test persistent event"
+      events:
+        - id: evt_alert
+          type: persistent
+          payload:
+            - { name: level, dtype: number }
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-044
+    description: Invalid event type
+    category: events
+    expect: invalid
+    error: INVALID_EVENT_TYPE
+    flow: |
+      v: "1.0"
+      id: "bad_event_type"
+      name: "Bad Event Type"
+      intention: "Test invalid event type"
+      events:
+        - id: evt_bad
+          type: ephemeral
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  # ============================================================
+  # CATEGORY: Edges and Graph Structure
+  # ============================================================
+
+  - id: T-050
+    description: Edge referencing nonexistent source node
+    category: graph
+    expect: invalid
+    error: INVALID_EDGE_SOURCE
+    flow: |
+      v: "1.0"
+      id: "bad_edge_source"
+      name: "Bad Edge Source"
+      intention: "Test bad edge"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: ghost_node, t: end }
+        - { s: start,      t: end }
+
+  - id: T-051
+    description: Edge referencing nonexistent target node
+    category: graph
+    expect: invalid
+    error: INVALID_EDGE_TARGET
+    flow: |
+      v: "1.0"
+      id: "bad_edge_target"
+      name: "Bad Edge Target"
+      intention: "Test bad edge target"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: ghost_node }
+
+  - id: T-052
+    description: Unreachable node -- no incoming edges
+    category: graph
+    expect: invalid
+    error: UNREACHABLE_NODE
+    flow: |
+      v: "1.0"
+      id: "unreachable"
+      name: "Unreachable Node"
+      intention: "Test unreachable node"
+      nodes:
+        - id: start
+          t: start
+        - id: orphan
+          t: task
+          o: { op: human }
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-053
+    description: Back-edge for loop is valid
+    category: graph
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "loop_flow"
+      name: "Loop Flow"
+      intention: "Retry until approved"
+      nodes:
+        - id: start
+          t: start
+        - id: review
+          t: task
+          o: { op: human }
+        - id: check
+          t: decision
+          mode: exclusive
+        - id: end
+          t: end
+      edges:
+        - { s: start,  t: review }
+        - { s: review, t: check }
+        - { s: check,  t: end,    c: "outcome == 'approved'" }
+        - { s: check,  t: review, c: "outcome == 'rejected'" }
+
+  # ============================================================
+  # CATEGORY: Join Policies
+  # ============================================================
+
+  - id: T-060
+    description: Valid n_of_m join policy
+    category: join_policies
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "n_of_m_join"
+      name: "N of M Join"
+      intention: "Require 2 of 3 approvals"
+      nodes:
+        - id: start
+          t: start
+        - id: split
+          t: fork
+        - id: reviewer_a
+          t: task
+          o: { op: human }
+        - id: reviewer_b
+          t: task
+          o: { op: human }
+        - id: reviewer_c
+          t: task
+          o: { op: llm, tier: 3 }
+        - id: gate
+          t: join
+          joinPolicy:
+            mode: n_of_m
+            n: 2
+            m: 3
+            onSatisfied: cancel_pending
+        - id: end
+          t: end
+      edges:
+        - { s: start,      t: split }
+        - { s: split,      t: reviewer_a }
+        - { s: split,      t: reviewer_b }
+        - { s: split,      t: reviewer_c }
+        - { s: reviewer_a, t: gate }
+        - { s: reviewer_b, t: gate }
+        - { s: reviewer_c, t: gate }
+        - { s: gate,       t: end }
+
+  - id: T-061
+    description: n greater than m in n_of_m is invalid
+    category: join_policies
+    expect: invalid
+    error: INVALID_JOIN_POLICY
+    flow: |
+      v: "1.0"
+      id: "bad_n_of_m"
+      name: "Bad N of M"
+      intention: "Invalid join"
+      nodes:
+        - id: start
+          t: start
+        - id: gate
+          t: join
+          joinPolicy:
+            mode: n_of_m
+            n: 5
+            m: 3
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: gate }
+        - { s: gate,  t: end }
+
+  # ============================================================
+  # CATEGORY: Vote Nodes
+  # ============================================================
+
+  - id: T-070
+    description: Valid majority vote node
+    category: vote
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "vote_flow"
+      name: "Vote Flow"
+      intention: "Multi-reviewer approval"
+      nodes:
+        - id: start
+          t: start
+        - id: split
+          t: fork
+        - id: reviewer_a
+          t: task
+          o: { op: human }
+        - id: reviewer_b
+          t: task
+          o: { op: human }
+        - id: reviewer_c
+          t: task
+          o: { op: llm, tier: 3 }
+        - id: decision
+          t: vote
+          mode: majority
+          verdict_expr: "result.outcome == 'approved'"
+          tie_breaker:
+            policy: escalate
+            operator: { op: human, tier: 4 }
+          out:
+            approved: end_approved
+            rejected: end_rejected
+            tie: senior_review
+        - id: senior_review
+          t: task
+          o: { op: human, tier: 4 }
+        - id: end_approved
+          t: end
+        - id: end_rejected
+          t: end
+      edges:
+        - { s: start,      t: split }
+        - { s: split,      t: reviewer_a }
+        - { s: split,      t: reviewer_b }
+        - { s: split,      t: reviewer_c }
+        - { s: reviewer_a, t: decision }
+        - { s: reviewer_b, t: decision }
+        - { s: reviewer_c, t: decision }
+        - { s: decision,   t: end_approved,  c: "vote.result == 'approved'" }
+        - { s: decision,   t: end_rejected,  c: "vote.result == 'rejected'" }
+        - { s: decision,   t: senior_review, c: "vote.result == 'tie'" }
+        - { s: senior_review, t: end_approved }
+
+  - id: T-071
+    description: Invalid vote mode
+    category: vote
+    expect: invalid
+    error: INVALID_VOTE_MODE
+    flow: |
+      v: "1.0"
+      id: "bad_vote_mode"
+      name: "Bad Vote Mode"
+      intention: "Test invalid vote mode"
+      nodes:
+        - id: start
+          t: start
+        - id: vote
+          t: vote
+          mode: plurality
+          verdict_expr: "result.outcome == 'yes'"
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: vote }
+        - { s: vote,  t: end }
+
+  # ============================================================
+  # CATEGORY: Failure Tolerance
+  # ============================================================
+
+  - id: T-080
+    description: Valid percentage failure tolerance
+    category: failure_tolerance
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "pct_tolerance"
+      name: "Percentage Tolerance"
+      intention: "Process with tolerance"
+      failure_tolerance: "5%"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-081
+    description: Valid consecutive failure tolerance
+    category: failure_tolerance
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "consec_tolerance"
+      name: "Consecutive Tolerance"
+      intention: "Process with consecutive tolerance"
+      failure_tolerance: "3 consecutive"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-082
+    description: Valid any failure tolerance
+    category: failure_tolerance
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "any_tolerance"
+      name: "Any Tolerance"
+      intention: "Zero tolerance process"
+      failure_tolerance: "any"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  - id: T-083
+    description: Invalid failure tolerance expression
+    category: failure_tolerance
+    expect: invalid
+    error: INVALID_FAILURE_TOLERANCE
+    flow: |
+      v: "1.0"
+      id: "bad_tolerance"
+      name: "Bad Tolerance"
+      intention: "Test invalid tolerance"
+      failure_tolerance: "sometimes"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  # ============================================================
+  # CATEGORY: Expression Language
+  # ============================================================
+
+  - id: T-090
+    description: Valid edge condition expression
+    category: expressions
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "edge_condition"
+      name: "Edge Condition"
+      intention: "Route by risk"
+      nodes:
+        - id: start
+          t: start
+        - id: assess
+          t: task
+          o: { op: llm, tier: 2 }
+        - id: high_risk
+          t: task
+          o: { op: human }
+        - id: low_risk
+          t: task
+          o: { op: llm, tier: 1 }
+        - id: end
+          t: end
+      edges:
+        - { s: start,    t: assess }
+        - { s: assess,   t: high_risk, c: "entity.risk_score > 0.7" }
+        - { s: assess,   t: low_risk,  c: "entity.risk_score <= 0.7" }
+        - { s: high_risk, t: end }
+        - { s: low_risk,  t: end }
+
+  - id: T-091
+    description: Valid duration literal in expression
+    category: expressions
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "duration_expr"
+      name: "Duration Expression"
+      intention: "Escalate overdue items"
+      nodes:
+        - id: start
+          t: start
+        - id: review
+          t: task
+          o: { op: human }
+          g: "token.elapsed < 4h"
+        - id: end
+          t: end
+      edges:
+        - { s: start,  t: review }
+        - { s: review, t: end }
+
+  - id: T-092
+    description: Double-quoted string in expression is invalid
+    category: expressions
+    expect: invalid
+    error: INVALID_EXPRESSION_SYNTAX
+    flow: |
+      v: "1.0"
+      id: "double_quote_expr"
+      name: "Double Quote Expression"
+      intention: "Test double quotes in expression"
+      nodes:
+        - id: start
+          t: start
+        - id: check
+          t: decision
+          mode: exclusive
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: check }
+        - { s: check, t: end, c: "entity.status == \"approved\"" }
+
+  # ============================================================
+  # CATEGORY: Constraints
+  # ============================================================
+
+  - id: T-100
+    description: Valid constraints block with sub-keys
+    category: constraints
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "constrained_flow"
+      name: "Constrained Flow"
+      intention: "Approve loans"
+      constraints:
+        sla: "95% within 4 hours"
+        fail: ">24h"
+        priority: "speed > thoroughness"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+
+  # ============================================================
+  # CATEGORY: Phase Boundaries
+  # ============================================================
+
+  - id: T-110
+    description: Valid phase boundary definition
+    category: phase_boundaries
+    expect: valid
+    flow: |
+      v: "1.0"
+      id: "metamorphic_flow"
+      name: "Metamorphic Flow"
+      intention: "Find product-market fit"
+      nodes:
+        - id: start
+          t: start
+        - id: gate
+          t: checkpoint
+          phase_gate:
+            evaluate: "metrics.revenue > 10000000"
+            if_true:
+              trigger_boundary: "scale_up"
+            if_false:
+              continue: normal
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: gate }
+        - { s: gate,  t: end }
+      phase_boundaries:
+        - id: scale_up
+          type: metamorphosis
+          from:
+            ir: "metamorphic_flow"
+            checkpoint: "gate"
+            intention: "Find product-market fit"
+          to:
+            ir: "enterprise_flow_v1"
+            intention: "Grow and defend revenue"
+          persist:
+            - entity
+            - variables: [revenue, customer_count]
+          migration: drain
+          reversible: false
+
+  - id: T-111
+    description: Phase boundary referencing undeclared checkpoint
+    category: phase_boundaries
+    expect: invalid
+    error: UNDECLARED_CHECKPOINT
+    flow: |
+      v: "1.0"
+      id: "bad_boundary"
+      name: "Bad Boundary"
+      intention: "Test bad boundary"
+      nodes:
+        - id: start
+          t: start
+        - id: end
+          t: end
+      edges:
+        - { s: start, t: end }
+      phase_boundaries:
+        - id: ghost_boundary
+          type: metamorphosis
+          from:
+            ir: "bad_boundary"
+            checkpoint: "ghost_checkpoint"
+            intention: "Test"
+          to:
+            ir: "other_flow"
+            intention: "Other"
+          migration: drain
+
+  # ============================================================
+  # CATEGORY: Fidelity -- Round-Trip
+  # ============================================================
+
+  - id: T-120
+    description: >
+      Forward fidelity test -- English description maps to this IR.
+      A conforming LLM given this English should produce equivalent IR.
+    category: fidelity
+    expect: valid
+    source_english: >
+      We need to approve employee expenses. A reviewer looks at each
+      claim and approves or rejects it. 95% should be decided within
+      24 hours. If the reviewer is unavailable, escalate.
+    flow: |
+      v: "1.0"
+      id: "expense_approval"
+      name: "Expense Approval"
+      intention: "Approve employee expenses"
+      failure_tolerance: "any"
+      constraints:
+        sla: "95% within 24 hours"
+      entities:
+        - type: expense_claim
+          attrs:
+            - { name: employee_id, dtype: string, required: true }
+            - { name: amount,      dtype: number, required: true }
+          lifecycle: [submitted, reviewing, decided]
+      events:
+        - id: evt_approved
+          type: transient
+          payload:
+            - { name: claim_id, dtype: string }
+      nodes:
+        - id: start
+          t: start
+        - id: review
+          t: task
+          o: { op: human }
+          failure_policy:
+            retry: 1
+            if_all_fail: escalate
+        - id: decision
+          t: decision
+          mode: exclusive
+        - id: end_approved
+          t: end
+          a:
+            - type: emit
+              event: evt_approved
+              payload:
+                claim_id: "${entity.id}"
+        - id: end_rejected
+          t: end
+      edges:
+        - { s: start,    t: review }
+        - { s: review,   t: decision }
+        - { s: decision, t: end_approved, c: "outcome == 'approved'" }
+        - { s: decision, t: end_rejected, c: "outcome == 'rejected'" }
+
+  - id: T-121
+    description: >
+      Reverse fidelity test -- this IR should reconstruct English that,
+      when fed back to a fresh LLM, produces equivalent IR.
+      Tests bidirectional fidelity: IR -> English -> IR.
+    category: fidelity
+    expect: valid
+    fidelity_threshold: 0.85
+    flow: |
+      v: "1.0"
+      id: "loan_approval_simple"
+      name: "Loan Approval"
+      intention: "Approve loan applications"
+      constraints:
+        sla: "95% within 4 hours"
+        fail: ">24h"
+      entities:
+        - type: loan_application
+          attrs:
+            - { name: amount,     dtype: number, required: true }
+            - { name: risk_score, dtype: number }
+          lifecycle: [submitted, reviewing, decided]
+      nodes:
+        - id: start
+          t: start
+        - id: assess
+          t: task
+          o: { op: llm, tier: 2 }
+        - id: route
+          t: decision
+          mode: exclusive
+        - id: manual_review
+          t: task
+          o: { op: human }
+        - id: auto_approve
+          t: task
+          o: { op: llm, tier: 1 }
+        - id: end
+          t: end
+      edges:
+        - { s: start,         t: assess }
+        - { s: assess,        t: route }
+        - { s: route,         t: manual_review, c: "entity.risk_score > 0.7" }
+        - { s: route,         t: auto_approve,  c: "entity.risk_score <= 0.7" }
+        - { s: manual_review, t: end }
+        - { s: auto_approve,  t: end }
