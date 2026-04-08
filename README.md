@@ -37,6 +37,30 @@ measurement.
 
 ---
 
+## PRISM-IR Within the WIRE Framework
+
+PRISM-IR is the **IR layer** of the WIRE framework:
+
+| Layer | What It Is |
+|-------|-----------|
+| **W**iki | Natural language process descriptions (English) |
+| **I**R | Intermediate representation (PRISM-IR) |
+| **R**esult | Execution traces, metrics, event ledger |
+| **E**xecutable | Compiled dialects (BPMN, SBML, Terraform, etc.) |
+
+The WIRE framework is how DEIA treats processes as living documents:
+- **Wiki** is the human intention layer -- plain English descriptions
+- **IR** is the canonical source of truth -- LLM-authored PRISM-IR
+- **Result** is the measurement layer -- did execution match intent?
+- **Executable** is the deployment layer -- dialect-specific compilation
+
+PRISM-IR sits at the center. It translates Wiki into Result. It compiles
+into Executable formats. It measures IRD (Intention/Reaction Density) --
+the ratio of intentional design to reactive patches. It enforces IRE
+fidelity: **Intention → Result → Executable** as the quality gate.
+
+---
+
 ## Why PRISM-IR?
 
 Every serious process tool today makes you choose: simulate *or* execute.
@@ -154,11 +178,11 @@ touched the YAML.
 
 ## Key Features
 
-**43/43 van der Aalst workflow pattern coverage.**
-Every industrial workflow pattern -- from simple sequences to
-multi-instance dynamic parallelism, deferred choices, and canceling
-discriminators -- is expressible in PRISM-IR. See the full coverage
-table in the spec.
+**100% van der Aalst workflow pattern coverage (43/43).**
+Every canonical workflow pattern from the van der Aalst reference model --
+from simple sequences to multi-instance dynamic parallelism, deferred
+choices, and canceling discriminators -- is expressible in PRISM-IR.
+See [`PATTERNS.md`](./PATTERNS.md) for the full coverage table.
 
 **Four-vector resource profiles.**
 Resources carry statistical profiles across four vectors: Quality (σ),
@@ -207,11 +231,12 @@ formats.
 
 ---
 
-## Spec
+## Spec and Patterns
 
 The full specification is in [`SPEC.md`](./SPEC.md).
+Van der Aalst pattern coverage table is in [`PATTERNS.md`](./PATTERNS.md).
 
-It covers:
+The spec covers:
 
 - Complete top-level schema
 - All node types and join policies
@@ -227,22 +252,35 @@ It covers:
 - Multi-agent modeling and LOD zones
 - Domain vocabulary format
 - Cross-domain pattern library
-- Full 43/43 van der Aalst coverage table
 - Complete annotated example
 
 ---
 
-## Relationship to DEIA Solutions
+## Dialect Compilers and Proprietary vs. Open
 
-PRISM-IR is the open specification. The runtime -- simulation engine,
-production executor, optimizer, event ledger, surrogate pipeline, and
-Alterverse query layer -- is proprietary and available through the DEIA
-platform at [deiasolutions.com](https://deiasolutions.com).
+**PRISM-IR specification and schema: open (Apache 2.0).**
+**Dialect compiler implementation: proprietary.**
 
-The spec is open because interoperability requires a public contract.
-Anyone can build a conforming PRISM-IR runtime. The value of the DEIA
-platform is not in keeping the format secret -- it is in what runs on
-top of it.
+PRISM-IR can compile to multiple target formats:
+
+| Target Dialect | Use Case |
+|---------------|----------|
+| BPMN 2.0 | Business process engines |
+| SBML | Systems biology modeling |
+| L-systems | Grammar-based growth models |
+| Workflow YAML | Generic orchestration engines |
+| Terraform | Infrastructure as code |
+| Makefile | Build pipelines |
+
+The specification and schema are open because interoperability requires a
+public contract. The dialect compiler (the translation engine that
+converts PRISM-IR into BPMN, SBML, etc.) is proprietary and available
+through the DEIA platform at [deiasolutions.com](https://deiasolutions.com).
+
+Anyone can build a conforming PRISM-IR runtime or compiler. The value of
+the DEIA platform is not in keeping the format secret -- it is in the
+execution engine, optimizer, surrogate pipeline, event ledger, and
+Alterverse query layer that run on top of it.
 
 ---
 
