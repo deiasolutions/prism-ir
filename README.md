@@ -4,6 +4,9 @@
 
 Describe your process once. Simulate your intent. Manifest it.
 
+**Current version:** v1.1.0 (additive amendments for 8OS compatibility — see [`SPEC-v1.1.md`](./SPEC-v1.1.md))
+**Baseline:** v1.0.0 ([`SPEC.md`](./SPEC.md))
+
 ---
 
 ## What Is PRISM-IR?
@@ -233,7 +236,7 @@ formats.
 
 ## Spec and Patterns
 
-The full specification is in [`SPEC.md`](./SPEC.md).
+The full specification is in [`SPEC-v1.1.md`](./SPEC-v1.1.md) (current). The v1.0.0 baseline lives in [`SPEC.md`](./SPEC.md).
 Van der Aalst pattern coverage table is in [`PATTERNS.md`](./PATTERNS.md).
 
 The spec covers:
