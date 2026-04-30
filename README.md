@@ -1,273 +1,77 @@
 # PRISM-IR
 
-**Process Representation, Intent Simulation & Manifestation**
+**Process Representation, Intent Simulation & Manifestation.**
 
-Describe your process once. Simulate your intent. Manifest it.
+*Describe your process once. Simulate your intent. Manifest it.*
 
-**Current version:** v1.1.0 (additive amendments for 8OS compatibility — see [`SPEC-v1.1.md`](./SPEC-v1.1.md))
-**Baseline:** v1.0.0 ([`SPEC.md`](./SPEC.md))
+PRISM-IR is the source language for declarative process programs. Humans describe processes in plain English. LLMs write the program. Conforming runtimes execute it. Other LLMs reconstruct English from it on demand. **You never touch the YAML.**
 
----
+The language sits between input (English, BPMN, L-systems, other domain formats) and execution engines (simulation, production, optimizer). It is read and written by LLMs, not by humans directly.
 
-## What Is PRISM-IR?
+## Status
 
-PRISM-IR is a domain-agnostic intermediate representation for any
-process -- business workflow, biological system, multi-agent ecosystem,
-or anything else that can be described in words.
+- **Current version:** v1.1.0 — additive amendments for 8OS compatibility ([`SPEC-v1.1.md`](./SPEC-v1.1.md)).
+- **Baseline:** v1.0.0 ([`SPEC.md`](./SPEC.md)).
+- **Pattern coverage:** [43 of 43 van der Aalst Workflow Patterns](./PATTERNS.md). The full canonical reference set is expressible.
+- **Runtime model:** language-spec-only by design. Runtimes are pluggable; the [reference runtime is 8OS](https://github.com/deiasolutions/8os).
 
-**Humans describe processes in plain English. LLMs write the IR.
-Runtimes execute it. LLMs reconstruct English from it on demand.
-You never touch the YAML.**
+## Why PRISM-IR
 
-PRISM-IR is the contract between human intent and machine execution.
-It sits between input (English, BPMN, L-systems, and other domain
-formats) and execution engines (simulation, production, optimizer).
-It is written and read by LLMs, not by humans directly.
+Most process tools force a choice between simulation and production — different tools, different formats, different data. The seams between them are where meaning gets lost. PRISM-IR eliminates the seams. One program runs everywhere; simulation and production share the same graph, schema, and event ledger.
 
----
+Three properties no other format combines:
 
-## Four Execution Modes
+- **Intention is first-class.** Every program — and every sub-process — declares why it exists, not just what it does. Without "why," a process is a black box.
+- **Round-trip fidelity.** English → IR → English. Any LLM that reads a PRISM-IR program must reconstruct the original intent without loss. If the round-trip fails, the program is wrong.
+- **Operators are interchangeable.** At the node level, an LLM, a human, an API, and a script are interchangeable. Swap one for another without changing the program. Route by cost, quality, availability, or governance.
 
-One PRISM-IR file. Four execution modes. Same spec, same intent, same
-measurement.
+## Four execution modes
 
-| Mode | What Happens |
-|------|-------------|
+One PRISM-IR program. Four execution modes:
+
+| Mode | What happens |
+|---|---|
 | **Simulation** | Run in virtual time. Explore branches. Find failure modes before they happen. |
 | **Production** | Execute against real operators: humans, APIs, LLMs, scripts. |
 | **Hybrid** | Mix simulation and production in the same flow. |
 | **Optimization** | ML learns from runs. Returns Pareto-optimal configurations. |
 
----
+## Composition witnesses
 
-## PRISM-IR Within the WIRE Framework
+Three demonstrations of PRISM-IR programs hosted by the [8OS reference runtime](https://github.com/deiasolutions/8os). See the [8OS overview](https://github.com/deiasolutions/8os/blob/main/docs/8OS-OVERVIEW-v3.md) for the runtime's framing of all three:
 
-PRISM-IR is the **IR layer** of the WIRE framework:
+- **[`lsystem-demo`](https://github.com/deiasolutions/lsystem-demo)** — a Level-1 PRISM-IR program declaring an L-system rule-rewriting workflow. 8OS hosts the program; a deterministic decomposer materializes it; a browser-driven adapter renders the result.
+- **[SCAN dogfood](https://github.com/deiasolutions/8os/blob/main/docs/demos/scan.md)** — a PRISM-IR program decomposed by an LLM, with real HTTP fetches against live sites, producing a daily-briefing artifact.
+- **[`decomposition-strategy-demo`](https://github.com/deiasolutions/decomposition-strategy-demo)** — a PRISM-IR program whose resolution is more PRISM-IR programs that the same runtime then runs. Self-composition.
 
-| Layer | What It Is |
-|-------|-----------|
-| **W**iki | Natural language process descriptions (English) |
-| **I**R | Intermediate representation (PRISM-IR) |
-| **R**esult | Execution traces, metrics, event ledger |
-| **E**xecutable | Compiled dialects (BPMN, SBML, Terraform, etc.) |
+Three different decomposer fills (deterministic / LLM / program-authored). Three different outside-call profiles. The same source language across all three.
 
-The WIRE framework is how DEIA treats processes as living documents:
-- **Wiki** is the human intention layer -- plain English descriptions
-- **IR** is the canonical source of truth -- LLM-authored PRISM-IR
-- **Result** is the measurement layer -- did execution match intent?
-- **Executable** is the deployment layer -- dialect-specific compilation
+## Key features
 
-PRISM-IR sits at the center. It translates Wiki into Result. It compiles
-into Executable formats. It measures IRD (Intention/Reaction Density) --
-the ratio of intentional design to reactive patches. It enforces IRE
-fidelity: **Intention → Result → Executable** as the quality gate.
+- **Four-vector resource profiles.** Resources carry statistical profiles across σ (Quality), π (Preference), α (Autonomy), ρ (Reliability) — per skill, with correlations. Simulation samples from real distributions, not flat averages.
+- **Phase boundaries (metamorphosis).** A program can transform into a different program while preserving entity identity, selected state, and lineage. A startup workflow becomes an enterprise workflow. The Alterverse holds every branch of every timeline.
+- **Domain vocabularies.** Each domain — biology, finance, logistics, epidemiology — gets a vocabulary layer mapping domain terms to PRISM-IR primitives. The underlying language stays the same. Surrogates trained in one domain can inform predictions in another when the underlying mathematical pattern is shared.
+- **Surrogate models as operators.** Train an ML model on simulation and production runs. Plug it back as an operator. Get 1000× faster predictions without re-running the full engine.
+- **Multi-agent modeling with level-of-detail.** Run ecosystems of concurrent processes. LOD zones apply full fidelity near the focus entity and statistical approximations at distance — the same technique that makes open-world games tractable.
 
----
+## File format
 
-## Why PRISM-IR?
+Standalone PRISM-IR programs use the `.prism.md` extension. YAML frontmatter identifies the file and version; the program lives in a YAML fenced block in the body. Conforming runtimes may also support PRISM-IR as an embedded block within their own package formats.
 
-Every serious process tool today makes you choose: simulate *or* execute.
-Different tools, different formats, different data. You simulate in one
-system, build in another, measure in a third. The seams between them are
-where meaning gets lost.
+## Specification
 
-PRISM-IR eliminates the seams. One spec runs everywhere. Simulation and
-production share the same graph, the same schema, the same event ledger.
-You can query a simulation run and a production run in the same dashboard
-with the same filters.
+- [`SPEC-v1.1.md`](./SPEC-v1.1.md) — current language specification.
+- [`SPEC.md`](./SPEC.md) — v1.0.0 baseline, preserved.
+- [`PATTERNS.md`](./PATTERNS.md) — van der Aalst pattern coverage table.
 
-Three things nobody else does:
+The spec covers: complete top-level schema; all node types and join policies; vote nodes with majority/unanimous/threshold resolution; operator types and oracle tier routing; token and entity model; event declaration and emission rules; generators and queues; the four-vector resource model with statistical profiles and dispatch modes; expression language grammar, namespace, and collection functions; phase boundaries and metamorphosis; surrogate model schema; multi-agent modeling and LOD zones; domain vocabulary format; cross-domain pattern library; and a complete annotated example.
 
-**1. Intention is first-class.**
-Every process -- and every sub-process -- declares why it exists. Not
-just what it does. The platform measures whether execution matched intent.
-Without "why," a process is a black box.
-
-**2. The round-trip guarantee.**
-English -> IR -> English. This is not a documentation feature -- it is
-an LLM-to-LLM fidelity test. Any LLM that receives a PRISM-IR file must
-be able to reconstruct the original intent accurately without loss. If
-the round-trip fails, the IR is wrong.
-
-**3. LLM, human, API, script are interchangeable.**
-At the node level, PRISM-IR does not care who executes. An LLM and a
-human are both operators. Swap one for the other without changing the
-flow definition. Route based on cost, quality, availability, or
-governance policy.
-
----
-
-## Quick Example
-
-A human says:
-
-> "We need to approve employee expenses. A reviewer looks at each claim
-> and approves or rejects it. 95% should be decided within 24 hours."
-
-An LLM produces:
-
-```yaml
-v: "1.0"
-id: "expense_approval"
-name: "Expense Approval"
-
-intention: "Approve employee expenses"
-failure_tolerance: "any"
-
-constraints:
-  sla: "95% within 24 hours"
-
-entities:
-  - type: expense_claim
-    attrs:
-      - { name: employee_id, dtype: string, required: true }
-      - { name: amount,      dtype: number, required: true }
-      - { name: category,    dtype: string }
-    lifecycle: [submitted, reviewing, decided]
-
-events:
-  - id: evt_approved
-    type: transient
-    payload:
-      - { name: claim_id, dtype: string }
-
-nodes:
-  - id: start
-    t: start
-
-  - id: review
-    t: task
-    o: { op: human }
-    failure_policy:
-      retry: 1
-      if_all_fail: escalate
-
-  - id: decision
-    t: decision
-    mode: exclusive
-    out:
-      approved: end_approved
-      rejected: end_rejected
-
-  - id: end_approved
-    t: end
-    a:
-      - type: emit
-        event: evt_approved
-        payload:
-          claim_id: "${entity.id}"
-
-  - id: end_rejected
-    t: end
-
-edges:
-  - { s: start,    t: review }
-  - { s: review,   t: decision }
-  - { s: decision, t: end_approved, c: "outcome == 'approved'" }
-  - { s: decision, t: end_rejected, c: "outcome == 'rejected'" }
-
-metrics:
-  - cycle_time
-  - sla_compliance
-```
-
-The human described the process in one sentence. The LLM produced the
-IR. The same file runs as a simulation to tune staffing, deploys to
-production with real reviewers, or swaps the human operator for an LLM
-to test automated review. The spec does not change. The human never
-touched the YAML.
-
----
-
-## Key Features
-
-**100% van der Aalst workflow pattern coverage (43/43).**
-Every canonical workflow pattern from the van der Aalst reference model --
-from simple sequences to multi-instance dynamic parallelism, deferred
-choices, and canceling discriminators -- is expressible in PRISM-IR.
-See [`PATTERNS.md`](./PATTERNS.md) for the full coverage table.
-
-**Four-vector resource profiles.**
-Resources carry statistical profiles across four vectors: Quality (σ),
-Preference (π), Autonomy (α), Reliability (ρ). Per skill. With
-correlations. Simulation samples from the real distribution of your
-workforce, not a flat average.
-
-**Phase boundaries (metamorphosis).**
-A process can transform into a completely different process while
-preserving entity identity, selected state, and lineage. A startup
-workflow becomes an enterprise workflow. A caterpillar becomes a
-butterfly. The Alterverse holds every branch of every timeline.
-
-**Domain vocabularies.**
-PRISM-IR speaks any domain's native language. Biology, finance,
-logistics, epidemiology -- each gets a vocabulary layer that maps domain
-terms to PRISM-IR primitives. The underlying IR is always the same.
-Surrogates trained in one domain can inform predictions in another when
-the underlying mathematical pattern is shared.
-
-**Surrogate models as operators.**
-Train an ML model on simulation and production runs. Plug it back in as
-an operator. Get 1000x faster predictions without re-running the full
-simulation engine.
-
-**Multi-agent modeling with level-of-detail.**
-Run ecosystems of concurrent processes. Use level-of-detail (LOD) zones
-to apply full simulation fidelity near the focus entity and statistical
-approximations at distance -- the same technique that makes open-world
-video games tractable.
-
----
-
-## File Format
-
-Standalone PRISM-IR files use the `.prism.md` extension:
-
-```
-my-flow.prism.md
-```
-
-YAML frontmatter identifies the file and version. The flow definition
-lives in a YAML fenced block in the body. Conforming runtimes may also
-support PRISM-IR as an embedded block type within their own package
-formats.
-
----
-
-## Spec and Patterns
-
-The full specification is in [`SPEC-v1.1.md`](./SPEC-v1.1.md) (current). The v1.0.0 baseline lives in [`SPEC.md`](./SPEC.md).
-Van der Aalst pattern coverage table is in [`PATTERNS.md`](./PATTERNS.md).
-
-The spec covers:
-
-- Complete top-level schema
-- All node types and join policies
-- Vote node with majority/unanimous/threshold resolution
-- Operator types and oracle tier routing
-- Token and entity model
-- Event declaration and emission rules
-- Generator and queue primitives
-- Four-vector resource model with statistical profiles and dispatch modes
-- Expression language grammar, namespace, and collection functions
-- Phase boundaries and metamorphosis
-- Surrogate model schema
-- Multi-agent modeling and LOD zones
-- Domain vocabulary format
-- Cross-domain pattern library
-- Complete annotated example
-
----
-
-## Dialect Compilers and Proprietary vs. Open
-
-**PRISM-IR specification and schema: open (Apache 2.0).**
-**Dialect compiler implementation: proprietary.**
+## Dialect compilers
 
 PRISM-IR can compile to multiple target formats:
 
-| Target Dialect | Use Case |
-|---------------|----------|
+| Target | Use case |
+|---|---|
 | BPMN 2.0 | Business process engines |
 | SBML | Systems biology modeling |
 | L-systems | Grammar-based growth models |
@@ -275,34 +79,24 @@ PRISM-IR can compile to multiple target formats:
 | Terraform | Infrastructure as code |
 | Makefile | Build pipelines |
 
-The specification and schema are open because interoperability requires a
-public contract. The dialect compiler (the translation engine that
-converts PRISM-IR into BPMN, SBML, etc.) is proprietary and available
-through the DEIA platform at [deiasolutions.com](https://deiasolutions.com).
+**Specification and schema: open (Apache 2.0).** Anyone can build a conforming runtime or compiler — interoperability requires a public language.
 
-Anyone can build a conforming PRISM-IR runtime or compiler. The value of
-the DEIA platform is not in keeping the format secret -- it is in the
-execution engine, optimizer, surrogate pipeline, event ledger, and
-Alterverse query layer that run on top of it.
-
----
+**Dialect compiler implementation: proprietary.** The translation engine is available through the DEIA platform at [deiasolutions.com](https://deiasolutions.com). The platform's value is in the execution engine, optimizer, surrogate pipeline, event ledger, and Alterverse query layer — not in keeping the language secret.
 
 ## Principles
 
 1. Humans write English. LLMs write IR.
 2. Intention is first-class. Without "why," execution is a black box.
-3. Same IR, four modes. The flow never changes. Only operator bindings change.
+3. Same program, four modes. The flow never changes; only operator bindings change.
 4. LLM, human, API, script are interchangeable at the node level.
-5. Metamorphosis preserves identity. The organism is continuous. The IR is just its current body.
-6. The Alterverse holds everything. No branch is deleted. Every counterfactual is preserved.
-7. English -> IR -> English. If the round-trip loses meaning, the IR is wrong.
+5. Metamorphosis preserves identity. The organism is continuous; the IR is its current body.
+6. The Alterverse holds everything. No branch is deleted; every counterfactual is preserved.
+7. English → IR → English. If the round-trip loses meaning, the program is wrong.
 8. Complexity arises from need. A three-node flow is three nodes.
-
----
 
 ## License
 
-The PRISM-IR specification is published under the Apache 2.0 license.
+The PRISM-IR specification is published under the Apache 2.0 license. See [`LICENSE`](./LICENSE).
 
 ---
 
