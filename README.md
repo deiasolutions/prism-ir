@@ -22,7 +22,7 @@ Most process tools force a choice between simulation and production — differen
 Three properties no other format combines:
 
 - **Intention is first-class.** Every program — and every sub-process — declares why it exists, not just what it does. Without "why," a process is a black box.
-- **Round-trip fidelity.** English → IR → English. Any LLM that reads a PRISM-IR program must reconstruct the original intent without loss. If the round-trip fails, the program is wrong.
+- **Round-trip fidelity.** English → IR → English. The IR must preserve intent under round-trip. If the regenerated English drifts from the original intent, the program is wrong.
 - **Operators are interchangeable.** At the node level, an LLM, a human, an API, and a script are interchangeable. Swap one for another without changing the program. Route by cost, quality, availability, or governance.
 
 ## Four execution modes
@@ -64,7 +64,13 @@ Standalone PRISM-IR programs use the `.prism.md` extension. YAML frontmatter ide
 - [`SPEC.md`](./SPEC.md) — v1.0.0 baseline, preserved.
 - [`PATTERNS.md`](./PATTERNS.md) — van der Aalst pattern coverage table.
 
-The spec covers: complete top-level schema; all node types and join policies; vote nodes with majority/unanimous/threshold resolution; operator types and oracle tier routing; token and entity model; event declaration and emission rules; generators and queues; the four-vector resource model with statistical profiles and dispatch modes; expression language grammar, namespace, and collection functions; phase boundaries and metamorphosis; surrogate model schema; multi-agent modeling and LOD zones; domain vocabulary format; cross-domain pattern library; and a complete annotated example.
+The spec covers:
+
+- Top-level schema; node types and join policies; vote nodes with majority/unanimous/threshold resolution; operator types and oracle tier routing.
+- Token and entity model; event declaration and emission rules; generators and queues.
+- Four-vector resource model with statistical profiles and dispatch modes; expression language grammar, namespace, and collection functions.
+- Phase boundaries and metamorphosis; surrogate model schema; multi-agent modeling and LOD zones; domain vocabulary format; cross-domain pattern library.
+- A complete annotated example.
 
 ## Dialect compilers
 
@@ -76,8 +82,6 @@ PRISM-IR can compile to multiple target formats:
 | SBML | Systems biology modeling |
 | L-systems | Grammar-based growth models |
 | Workflow YAML | Generic orchestration engines |
-| Terraform | Infrastructure as code |
-| Makefile | Build pipelines |
 
 **Specification and schema: open (Apache 2.0).** Anyone can build a conforming runtime or compiler — interoperability requires a public language.
 
