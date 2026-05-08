@@ -5,7 +5,8 @@ Run the PRISM-IR round-trip on a worked example in under two minutes.
 ## Prerequisites
 
 - Python 3.11 or newer
-- An Anthropic API key (any plan)
+- Anthropic credentials — either a console API key (`sk-ant-...`) or a
+  Claude Code OAuth token (`oat_...` from `claude setup-token`).
 
 ## Steps
 
@@ -17,12 +18,17 @@ cd prism-ir
 # 2. Install dependencies
 pip install anthropic pyyaml
 
-# 3. Set your API key
-export ANTHROPIC_API_KEY=sk-ant-...
+# 3. Set your credential — either form works
+export ANTHROPIC_API_KEY=sk-ant-...     # console API key, or:
+export ANTHROPIC_API_KEY=oat_...        # Claude Code OAuth token
 
 # 4. Run the round-trip
 python scripts/roundtrip.py examples/claims-processing.prism.md
 ```
+
+The script detects `oat_`-prefixed values and uses Bearer auth with the
+OAuth beta header automatically; `sk-ant-`-prefixed values go through
+the SDK's standard API-key path.
 
 ## What you should see
 

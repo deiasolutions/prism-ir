@@ -100,18 +100,30 @@ def write_roundtrip_report(path, original, reconstructed, out_dir):
     return out_path
 
 
+def build_client():
+    """ANTHROPIC_API_KEY may be either a `sk-ant-...` console API key or an
+    `oat_...` Claude Code OAuth token; the latter routes through Bearer
+    auth with the OAuth beta header."""
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        print("error: set ANTHROPIC_API_KEY environment variable", file=sys.stderr)
+        sys.exit(1)
+    if key.startswith("oat_"):
+        return Anthropic(
+            auth_token=key,
+            default_headers={"anthropic-beta": "oauth-2025-04-20"},
+        )
+    return Anthropic()
+
+
 def main():
     if len(sys.argv) != 2:
         print("usage: python scripts/roundtrip.py <path-to-prism-md>", file=sys.stderr)
         sys.exit(2)
 
     path = sys.argv[1]
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        print("error: set ANTHROPIC_API_KEY environment variable", file=sys.stderr)
-        sys.exit(1)
-
     original, ir_yaml = load_prism_file(path)
-    client = Anthropic()
+    client = build_client()
 
     print(f"Round-tripping: {path}\n")
     print("=" * 72)

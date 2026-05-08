@@ -27,7 +27,7 @@ Run the round-trip on a worked example in under two minutes:
 git clone https://github.com/deiasolutions/prism-ir.git
 cd prism-ir
 pip install anthropic pyyaml
-export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY=sk-ant-...   # or oat_... from `claude setup-token`
 python scripts/roundtrip.py examples/claims-processing.prism.md
 ```
 
