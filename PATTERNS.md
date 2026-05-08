@@ -61,8 +61,8 @@ worked example.
 | 38 | General Synchronizing Merge | Advanced Branching | Resource pool + skill matching | example pending |
 | 39 | Critical Section | State-based | Resource pool, `deferred: true` | example pending |
 | 40 | Interleaved Routing | State-based | `t: task`, `op: human` + approval gate | example pending |
-| 41 | Thread Split | Multiple Instance | Multiple approvers with distinct roles | example pending |
-| 42 | Thread Merge | Multiple Instance | Entity lifecycle states | example pending |
+| 41 | Thread Merge | Multiple Instance | `t: join` with runtime-determined instance count | example pending |
+| 42 | Thread Split | Multiple Instance | `t: fork` with runtime-determined instance count | example pending |
 | 43 | Explicit Termination | Termination | Resource pool + ledger history lookup | example pending |
 
 **Spec coverage: 43/43 (100%).** Every pattern has a defined mechanism in
@@ -132,8 +132,27 @@ To add a worked example for a pending pattern, file a PR with:
 
 ---
 
+## Resource Pattern Coverage (partial)
+
+The 43 patterns above are van der Aalst's **control-flow** patterns.
+PRISM-IR's resource model also covers patterns from the separate
+[resource patterns catalog](https://www.workflowpatterns.com/patterns/resource/).
+We do not claim full resource-pattern coverage here — that's a
+follow-on effort — but the existing worked examples already
+demonstrate several:
+
+| Resource Pattern | Mechanism | Worked Example |
+|------------------|-----------|----------------|
+| Direct Allocation | Resource pool with named allocation | [claims-processing](examples/claims-processing.prism.md) (`underwriters` resource pool) |
+| Role-Based Allocation | Resource pool with skill matching | [claims-processing](examples/claims-processing.prism.md) (`skills: [manual_review]`) |
+| Authorization | `t: task`, `op: human` + downstream decision gate | [expense-approval](examples/expense-approval.prism.md), [claims-processing](examples/claims-processing.prism.md) |
+| Case Handling | Entity declared with `lifecycle:` states | [claims-processing](examples/claims-processing.prism.md), [sir-epidemic](examples/sir-epidemic.prism.md) |
+
+---
+
 ## References
 
 - Van der Aalst, W.M.P. et al. (2003). *Workflow Patterns*. [workflowpatterns.com](https://www.workflowpatterns.com/)
+- Van der Aalst, W.M.P. et al. *Workflow Resource Patterns*. [workflowpatterns.com/patterns/resource](https://www.workflowpatterns.com/patterns/resource/)
 - PRISM-IR full specification: [`SPEC.md`](./SPEC.md)
 - PRISM-IR v1.1 amendments: [`SPEC-v1.1.md`](./SPEC-v1.1.md)
