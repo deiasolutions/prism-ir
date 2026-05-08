@@ -15,6 +15,24 @@ The language sits between input (English, BPMN, L-systems, other domain formats)
 - **Pattern coverage:** [43 of 43 van der Aalst Workflow Patterns](./PATTERNS.md). The full canonical reference set is expressible.
 - **Runtime model:** language-spec-only by design. Runtimes are pluggable; the [reference runtime is 8OS](https://github.com/deiasolutions/8os).
 
+## Try It
+
+Run the round-trip on a worked example in under two minutes:
+
+```bash
+git clone https://github.com/deiasolutions/prism-ir.git
+cd prism-ir
+pip install anthropic pyyaml
+export ANTHROPIC_API_KEY=sk-ant-...
+python scripts/roundtrip.py examples/claims-processing.prism.md
+```
+
+The script reads a PRISM-IR file, sends only the IR to an LLM, and asks the LLM to reconstruct the original English process description. You'll see the original and the reconstruction side by side.
+
+If the reconstruction preserves the intent of the original, the IR is faithful — the round-trip principle holds. This is the test.
+
+See [`QUICKSTART.md`](QUICKSTART.md) for details and other examples.
+
 ## Why PRISM-IR
 
 Most process tools force a choice between simulation and production — different tools, different formats, different data. The seams between them are where meaning gets lost. PRISM-IR eliminates the seams. One program runs everywhere; simulation and production share the same graph, schema, and event ledger.
