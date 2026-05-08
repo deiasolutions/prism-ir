@@ -2,7 +2,11 @@
 
 **Process Representation, Intent Simulation & Manifestation.**
 
+[![Round-trip verified](https://github.com/deiasolutions/prism-ir/actions/workflows/roundtrip.yml/badge.svg)](https://github.com/deiasolutions/prism-ir/actions/workflows/roundtrip.yml)
+
 *Describe your process once. Simulate your intent. Manifest it.*
+
+An open intermediate representation for processes, with a verified English ↔ IR round-trip. Apache 2.0. 43/43 van der Aalst patterns spec-covered. See [`PATTERNS.md`](PATTERNS.md) for example coverage.
 
 PRISM-IR is the source language for declarative process programs. Humans describe processes in plain English. LLMs write the program. Conforming runtimes execute it. Other LLMs reconstruct English from it on demand. **You never touch the YAML.**
 
@@ -30,6 +34,8 @@ python scripts/roundtrip.py examples/claims-processing.prism.md
 The script reads a PRISM-IR file, sends only the IR to an LLM, and asks the LLM to reconstruct the original English process description. You'll see the original and the reconstruction side by side.
 
 If the reconstruction preserves the intent of the original, the IR is faithful — the round-trip principle holds. This is the test.
+
+The `verify_roundtrip.py` script in `scripts/` is the verifier the CI gate runs — it scores reconstructions with an LLM-as-judge call and fails the build if any example loses meaning.
 
 See [`QUICKSTART.md`](QUICKSTART.md) for details and other examples.
 
