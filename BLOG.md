@@ -204,6 +204,8 @@ across every timeline.
 
 ## 43/43
 
+> **Correction (2026-11-08).** The coverage claim in this section is withdrawn pending re-verification. An audit found that the spec's coverage table diverges from the 2006 pattern catalogue from pattern 21 on. See [`PATTERNS.md`](PATTERNS.md) for the notice and status.
+
 The van der Aalst workflow pattern reference model is the most
 comprehensive formal taxonomy of process patterns that exists. Forty-
 three patterns covering every known control-flow structure in industrial

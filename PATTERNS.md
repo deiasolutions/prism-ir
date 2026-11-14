@@ -1,5 +1,7 @@
 # Van der Aalst Workflow Pattern Coverage
 
+> **Coverage under revision (2026-11-08).** An audit against the published catalogue (Russell, ter Hofstede, van der Aalst, Mulyar, *Workflow Control-Flow Patterns: A Revised View*, 2006) found that from row 21 on, the mechanism column below does not match the pattern named in the same row, and several rows cite resource-pattern mechanisms. The 43/43 claim is withdrawn until a pattern-by-pattern acceptance suite, now in progress, re-proves it. Rows 1 to 20 match the catalogue by name; several of their mechanisms need spec amendments that the suite documents.
+
 PRISM-IR achieves **100% spec coverage** of all 43 canonical workflow patterns
 from the van der Aalst reference model
 ([workflowpatterns.com](https://www.workflowpatterns.com/)). Every pattern is
