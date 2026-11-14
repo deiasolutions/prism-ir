@@ -6,7 +6,7 @@
 
 *Describe your process once. Simulate your intent. Manifest it.*
 
-An open intermediate representation for processes, with a verified English ↔ IR round-trip. Apache 2.0. 43/43 van der Aalst patterns spec-covered. See [`PATTERNS.md`](PATTERNS.md) for example coverage.
+An open intermediate representation for processes, with a verified English ↔ IR round-trip. Apache 2.0. Van der Aalst pattern coverage is under revision; see [`PATTERNS.md`](PATTERNS.md).
 
 PRISM-IR is the source language for declarative process programs. Humans describe processes in plain English. LLMs write the program. Conforming runtimes execute it. Other LLMs reconstruct English from it on demand. **You never touch the YAML.**
 
@@ -16,7 +16,7 @@ The language sits between input (English, BPMN, L-systems, other domain formats)
 
 - **Current version:** v1.1.0 — additive amendments for 8OS compatibility ([`SPEC-v1.1.md`](./SPEC-v1.1.md)).
 - **Baseline:** v1.0.0 ([`SPEC.md`](./SPEC.md)).
-- **Pattern coverage:** [43 of 43 van der Aalst Workflow Patterns](./PATTERNS.md). The full canonical reference set is expressible.
+- **Pattern coverage:** under revision (2026-11-08). See [`PATTERNS.md`](./PATTERNS.md) for the notice and status.
 - **Runtime model:** language-spec-only by design. Runtimes are pluggable; the [reference runtime is 8OS](https://github.com/deiasolutions/8os).
 
 ## Try It
