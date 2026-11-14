@@ -1093,6 +1093,8 @@ trader herding -- the math is the same.
 
 ## Van der Aalst 43-Pattern Coverage
 
+> **Coverage under revision (2026-11-08).** From row 21 on, the table below does not match the 2006 catalogue (Russell, ter Hofstede, van der Aalst, Mulyar, *Workflow Control-Flow Patterns: A Revised View*), and several rows cite resource-pattern mechanisms. The 43/43 claim is withdrawn until a pattern-by-pattern acceptance suite re-proves it. See [`PATTERNS.md`](PATTERNS.md).
+
 PRISM-IR covers all 43 workflow patterns from the van der Aalst reference
 model (workflowpatterns.com). This is achieved through the node type
 system, join policies, and three coordination support role primitives.
@@ -1143,7 +1145,7 @@ system, join policies, and three coordination support role primitives.
 | 42 | Case Handling | Entity lifecycle states |
 | 43 | Retain Familiar | Resource pool + ledger history lookup |
 
-**Coverage: 43/43 (100%)**
+**Coverage: under revision; see the notice above.**
 
 ---
 
