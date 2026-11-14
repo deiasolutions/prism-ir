@@ -263,8 +263,17 @@ tests:
         - id: end
           t: end
       edges:
-        - { s: start, t: work }
-        - { s: work,  t: end }
+        - { s: start,    t: work }
+        - { s: work,     t: branch }
+        - { s: branch,   t: split, c: "entity.status != 'fraud'" }
+        - { s: branch,   t: abort, c: "entity.status == 'fraud'" }
+        - { s: split,    t: approval }
+        - { s: split,    t: wait }
+        - { s: approval, t: merge }
+        - { s: wait,     t: merge }
+        - { s: merge,    t: gate }
+        - { s: gate,     t: end }
+        - { s: abort,    t: end }
 
   - id: T-021
     description: Invalid node type

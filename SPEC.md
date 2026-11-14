@@ -1241,6 +1241,18 @@ nodes:
   - id: start
     t: start
 
+  - id: id_check
+    t: task
+    o: { op: api }
+
+  - id: doc_verify
+    t: task
+    o: { op: llm, tier: 2 }
+
+  - id: fraud_scan
+    t: task
+    o: { op: script }
+
   - id: risk_assessment
     t: task
     o: { op: llm, tier: 2 }
@@ -1284,8 +1296,11 @@ nodes:
     mode: exclusive
     o: { op: human, tier: 4 }
     out:
-      approved: end_approved
+      approved: scale_ready
       rejected: end_rejected
+
+  - id: scale_ready
+    t: checkpoint
 
   - id: end_approved
     t: end
@@ -1304,7 +1319,10 @@ nodes:
     o: { op: human, tier: 4 }
 
 edges:
-  - { s: start,           t: risk_assessment }
+  - { s: start,           t: id_check }
+  - { s: id_check,        t: doc_verify }
+  - { s: doc_verify,      t: fraud_scan }
+  - { s: fraud_scan,      t: risk_assessment }
   - { s: risk_assessment, t: parallel_fork }
   - { s: parallel_fork,   t: review_a }
   - { s: parallel_fork,   t: review_b }
@@ -1316,7 +1334,8 @@ edges:
   - { s: review_vote,     t: end_rejected,    c: "vote.result == 'rejected'" }
   - { s: review_vote,     t: senior_review,   c: "vote.result == 'tie'" }
   - { s: senior_review,   t: final_decision }
-  - { s: final_decision,  t: end_approved,    c: "outcome == 'approved'" }
+  - { s: final_decision,  t: scale_ready,     c: "outcome == 'approved'" }
+  - { s: scale_ready,     t: end_approved }
   - { s: final_decision,  t: end_rejected,    c: "outcome == 'rejected'" }
 
 phase_boundaries:
